@@ -30,6 +30,22 @@ app.use('/', (req,res)=>{
   res.render('index.html');
 });
 
+let messages = [];
+
+//definir a forma de conexao do usuario com o server
+io.on('connection', socket =>{
+
+  socket.emit('previousMessages', messages);
+  //ouve o socket enviado pelo front recebendo com o mesmo 'name' de envio
+  socket.on('sendMessage', data =>{    
+    messages.push(data);
+    /*broadcast envia para todos usuarios, criando uma name 'recivedMessage'
+      e o valor da mensagem que é o data*/
+    socket.broadcast.emit('recivedMessage', data);
+  });
+
+});
+
 //chama o server na porta 3000 'localhos:3000'
 server.listen('3000');
 

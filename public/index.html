@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js'></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <form id="chat">
+    <input type="text" name="username" placeholder="Digite Seu Usuario">
+    <div class="messages"></div>
+    <input type="text" name="message" placeholder="Digite Sua Mensagem">
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script type="text/javascript">
+    /*conectar com o socket do backend como está na mesma pasta acessa a mesma 
+      porta*/
+    var socket = io('http://localhost:3000/');
+
+    function renderMessage(message) {
+      $('.messages').append('<div class="message"><strong>' + message.author + '</strong>: ' + message.message + ' </div>')
+    }
+
+    //ouve o previousMessages que vem do backend iterando pelas msg
+    socket.on('previousMessages', function (messages) {
+      for (message of messages) {
+        renderMessage(message);
+      }
+    });
+
+    //ouve o recivecMessage que vemd o backend retornando a funcao
+    socket.on('recivedMessage', function (message) {
+      renderMessage(message);
+    });
+
+    //verificar quando o chat é submitado
+    $("#chat").submit(function (event) {
+      //impede de submeter
+      event.preventDefault();
+
+      //salva as os values dos tais inputs
+      var author = $('input[name=username]').val();
+      var message = $('input[name=message]').val();
+
+      //verifica de tem valor 'se eles tem lenth maior que 0'
+      if (author.length && message.length) {
+        /*cria um objeto que com autor e mensagem*/
+        var messageObject = {
+          author,//igual a author: author,
+          message////igual a message: message,
+        };
+
+        renderMessage(messageObject);
+        /*cria um emit(envio para o socket), criando um name para o evento e        
+          passando o objeto*/
+        socket.emit('sendMessage', messageObject);
+      }
+
+
+    });
+  </script>
+</body>
+
+</html>
